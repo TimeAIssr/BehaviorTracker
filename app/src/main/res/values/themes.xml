@@ -30,6 +30,5 @@
         <item name="colorPrimaryInverse">@color/md_theme_light_inversePrimary</item>
     </style>
 
-    <!-- Dynamic Color Theme (Android 12+) -->
-    <style name="Theme.BehaviorTracker.DynamicColor" parent="Theme.Material3.DynamicColors.Light.NoActionBar" />
+
 </resources>
