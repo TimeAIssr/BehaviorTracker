@@ -8,6 +8,7 @@ build/
 *.aar
 *.ap_
 *.aab
+output.json
 
 # IntelliJ / Android Studio
 .idea/
@@ -16,6 +17,8 @@ build/
 *.ipr
 .navigation/
 captures/
+.externalNativeBuild/
+.cxx/
 
 # Keystore
 *.jks
@@ -24,7 +27,13 @@ captures/
 # Local config
 local.properties
 *.log
+google-services.json
+
+# Lint
+lint/generated/
+lint/outputs/
 
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
