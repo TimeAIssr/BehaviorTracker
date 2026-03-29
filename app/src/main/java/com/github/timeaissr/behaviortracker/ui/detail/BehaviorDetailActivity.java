@@ -3,6 +3,9 @@ package com.github.timeaissr.behaviortracker.ui.detail;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.EditText;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
@@ -60,6 +63,7 @@ public class BehaviorDetailActivity extends AppCompatActivity {
 
         setupToolbar();
         setupChipGroup();
+        setupFab();
         observeBehavior();
     }
 
@@ -87,6 +91,126 @@ public class BehaviorDetailActivity extends AppCompatActivity {
             }
             loadChartData();
         });
+    }
+
+    private void setupFab() {
+        binding.fabAddRecord.setOnClickListener(v -> {
+            if (currentBehavior != null) {
+                showAddRecordDialog();
+            }
+        });
+    }
+
+    private void showAddRecordDialog() {
+        if (currentBehavior == null) return;
+
+        boolean isBoolean = currentBehavior.getRecordType() == RecordType.BOOLEAN;
+        
+        if (isBoolean) {
+            showBooleanRecordDialog();
+        } else {
+            showNumericRecordDialog();
+        }
+    }
+
+    private void showBooleanRecordDialog() {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_boolean_input, null);
+        
+        com.google.android.material.button.MaterialButton btnPickDatetime = 
+                dialogView.findViewById(R.id.btn_pick_datetime);
+        final long[] selectedTimestamp = {System.currentTimeMillis()};
+        
+        btnPickDatetime.setOnClickListener(v -> showDateTimePicker(selectedTimestamp, btnPickDatetime));
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(currentBehavior.getName())
+                .setView(dialogView)
+                .setPositiveButton(R.string.confirm, (dialog, which) -> {
+                    viewModel.insertRecord(behaviorId, 1.0, null, selectedTimestamp[0]);
+                    com.google.android.material.snackbar.Snackbar.make(binding.getRoot(),
+                            currentBehavior.getName() + " - 记录已添加",
+                            com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show();
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
+    private void showNumericRecordDialog() {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_numeric_input, null);
+        
+        android.widget.EditText editValue = dialogView.findViewById(R.id.edit_value);
+        android.widget.EditText editNote = dialogView.findViewById(R.id.edit_note);
+        com.google.android.material.button.MaterialButton btnPickDatetime = 
+                dialogView.findViewById(R.id.btn_pick_datetime);
+
+        String unit = currentBehavior.getUnit() != null ? " (" + currentBehavior.getUnit() + ")" : "";
+        final long[] selectedTimestamp = {System.currentTimeMillis()};
+        
+        btnPickDatetime.setOnClickListener(v -> showDateTimePicker(selectedTimestamp, btnPickDatetime));
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(currentBehavior.getName() + unit)
+                .setView(dialogView)
+                .setPositiveButton(R.string.confirm, (dialog, which) -> {
+                    String valueStr = editValue.getText().toString().trim();
+                    if (!valueStr.isEmpty()) {
+                        try {
+                            double value = Double.parseDouble(valueStr);
+                            String note = editNote.getText().toString().trim();
+                            viewModel.insertRecord(behaviorId, value, 
+                                    note.isEmpty() ? null : note, selectedTimestamp[0]);
+                            com.google.android.material.snackbar.Snackbar.make(binding.getRoot(),
+                                    currentBehavior.getName() + " - 记录已添加",
+                                    com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show();
+                        } catch (NumberFormatException e) {
+                            // Ignore invalid input
+                        }
+                    }
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
+    private void showDateTimePicker(final long[] timestampHolder, 
+            com.google.android.material.button.MaterialButton button) {
+        // Show date picker first
+        com.google.android.material.datepicker.MaterialDatePicker<Long> datePicker = 
+                com.google.android.material.datepicker.MaterialDatePicker.Builder.datePicker()
+                .setTitleText("选择日期")
+                .setSelection(timestampHolder[0])
+                .build();
+
+        datePicker.addOnPositiveButtonClickListener(selection -> {
+            // After date is selected, show time picker
+            java.util.Calendar calendar = java.util.Calendar.getInstance();
+            calendar.setTimeInMillis(selection);
+            
+            com.google.android.material.timepicker.MaterialTimePicker timePicker = 
+                    new com.google.android.material.timepicker.MaterialTimePicker.Builder()
+                    .setTimeFormat(com.google.android.material.timepicker.TimeFormat.CLOCK_24H)
+                    .setHour(calendar.get(java.util.Calendar.HOUR_OF_DAY))
+                    .setMinute(calendar.get(java.util.Calendar.MINUTE))
+                    .setTitleText("选择时间")
+                    .build();
+
+            timePicker.addOnPositiveButtonClickListener(v -> {
+                calendar.set(java.util.Calendar.HOUR_OF_DAY, timePicker.getHour());
+                calendar.set(java.util.Calendar.MINUTE, timePicker.getMinute());
+                calendar.set(java.util.Calendar.SECOND, 0);
+                calendar.set(java.util.Calendar.MILLISECOND, 0);
+                
+                timestampHolder[0] = calendar.getTimeInMillis();
+                
+                // Update button text
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", 
+                        java.util.Locale.getDefault());
+                button.setText(sdf.format(new java.util.Date(timestampHolder[0])));
+            });
+
+            timePicker.show(getSupportFragmentManager(), "time_picker");
+        });
+
+        datePicker.show(getSupportFragmentManager(), "date_picker");
     }
 
     private void observeBehavior() {

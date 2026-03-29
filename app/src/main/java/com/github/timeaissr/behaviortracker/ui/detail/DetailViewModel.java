@@ -121,6 +121,15 @@ public class DetailViewModel extends AndroidViewModel {
         repository.deleteRecord(record);
     }
 
+    public void insertRecord(long behaviorId, double value, String note, long timestamp) {
+        Record record = new Record();
+        record.setBehaviorId(behaviorId);
+        record.setValue(value);
+        record.setNote(note);
+        record.setTimestamp(timestamp);
+        repository.insertRecord(record);
+    }
+
     public BehaviorRepository getRepository() {
         return repository;
     }

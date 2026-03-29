@@ -38,20 +38,30 @@ public class MainViewModel extends AndroidViewModel {
 
     /** Quick-log a boolean behavior (just inserts a record with value 1). */
     public void quickLogBoolean(long behaviorId) {
+        quickLogBoolean(behaviorId, System.currentTimeMillis());
+    }
+
+    /** Quick-log a boolean behavior with custom timestamp. */
+    public void quickLogBoolean(long behaviorId, long timestamp) {
         Record record = new Record();
         record.setBehaviorId(behaviorId);
         record.setValue(1.0);
-        record.setTimestamp(System.currentTimeMillis());
+        record.setTimestamp(timestamp);
         repository.insertRecord(record);
     }
 
     /** Quick-log a numeric behavior with a given value and optional note. */
     public void quickLogNumeric(long behaviorId, double value, String note) {
+        quickLogNumeric(behaviorId, value, note, System.currentTimeMillis());
+    }
+
+    /** Quick-log a numeric behavior with custom timestamp. */
+    public void quickLogNumeric(long behaviorId, double value, String note, long timestamp) {
         Record record = new Record();
         record.setBehaviorId(behaviorId);
         record.setValue(value);
         record.setNote(note);
-        record.setTimestamp(System.currentTimeMillis());
+        record.setTimestamp(timestamp);
         repository.insertRecord(record);
     }
 

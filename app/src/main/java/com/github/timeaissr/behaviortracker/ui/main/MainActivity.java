@@ -6,6 +6,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 
+import java.util.Calendar;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -16,8 +18,12 @@ import com.github.timeaissr.behaviortracker.databinding.ActivityMainBinding;
 import com.github.timeaissr.behaviortracker.ui.add.AddBehaviorActivity;
 import com.github.timeaissr.behaviortracker.ui.detail.BehaviorDetailActivity;
 import com.github.timeaissr.behaviortracker.ui.settings.SettingsActivity;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.timepicker.MaterialTimePicker;
+import com.google.android.material.timepicker.TimeFormat;
 
 public class MainActivity extends AppCompatActivity implements BehaviorAdapter.OnBehaviorClickListener {
 
@@ -84,10 +90,7 @@ public class MainActivity extends AppCompatActivity implements BehaviorAdapter.O
 
     @Override
     public void onBooleanLogClick(Behavior behavior) {
-        viewModel.quickLogBoolean(behavior.getId());
-        Snackbar.make(binding.getRoot(),
-                behavior.getName() + " - " + getString(R.string.logged_today),
-                Snackbar.LENGTH_SHORT).show();
+        showBooleanLogDialog(behavior);
     }
 
     @Override
@@ -95,13 +98,39 @@ public class MainActivity extends AppCompatActivity implements BehaviorAdapter.O
         showNumericInputDialog(behavior);
     }
 
+    private void showBooleanLogDialog(Behavior behavior) {
+        View dialogView = LayoutInflater.from(this)
+                .inflate(R.layout.dialog_boolean_input, null);
+        
+        MaterialButton btnPickDatetime = dialogView.findViewById(R.id.btn_pick_datetime);
+        final long[] selectedTimestamp = {System.currentTimeMillis()};
+        
+        btnPickDatetime.setOnClickListener(v -> showDateTimePicker(selectedTimestamp, btnPickDatetime));
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(behavior.getName())
+                .setView(dialogView)
+                .setPositiveButton(R.string.confirm, (dialog, which) -> {
+                    viewModel.quickLogBoolean(behavior.getId(), selectedTimestamp[0]);
+                    Snackbar.make(binding.getRoot(),
+                            behavior.getName() + " - " + getString(R.string.logged_today),
+                            Snackbar.LENGTH_SHORT).show();
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
     private void showNumericInputDialog(Behavior behavior) {
         View dialogView = LayoutInflater.from(this)
                 .inflate(R.layout.dialog_numeric_input, null);
         EditText editValue = dialogView.findViewById(R.id.edit_value);
         EditText editNote = dialogView.findViewById(R.id.edit_note);
+        MaterialButton btnPickDatetime = dialogView.findViewById(R.id.btn_pick_datetime);
 
         String unit = behavior.getUnit() != null ? " (" + behavior.getUnit() + ")" : "";
+        final long[] selectedTimestamp = {System.currentTimeMillis()};
+        
+        btnPickDatetime.setOnClickListener(v -> showDateTimePicker(selectedTimestamp, btnPickDatetime));
 
         new MaterialAlertDialogBuilder(this)
                 .setTitle(behavior.getName() + unit)
@@ -113,7 +142,7 @@ public class MainActivity extends AppCompatActivity implements BehaviorAdapter.O
                             double value = Double.parseDouble(valueStr);
                             String note = editNote.getText().toString().trim();
                             viewModel.quickLogNumeric(behavior.getId(), value,
-                                    note.isEmpty() ? null : note);
+                                    note.isEmpty() ? null : note, selectedTimestamp[0]);
                             Snackbar.make(binding.getRoot(),
                                     behavior.getName() + " - " + getString(R.string.logged_today),
                                     Snackbar.LENGTH_SHORT).show();
@@ -124,5 +153,43 @@ public class MainActivity extends AppCompatActivity implements BehaviorAdapter.O
                 })
                 .setNegativeButton(R.string.cancel, null)
                 .show();
+    }
+
+    private void showDateTimePicker(final long[] timestampHolder, MaterialButton button) {
+        // Show date picker first
+        MaterialDatePicker<Long> datePicker = MaterialDatePicker.Builder.datePicker()
+                .setTitleText("选择日期")
+                .setSelection(timestampHolder[0])
+                .build();
+
+        datePicker.addOnPositiveButtonClickListener(selection -> {
+            // After date is selected, show time picker
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(selection);
+            
+            MaterialTimePicker timePicker = new MaterialTimePicker.Builder()
+                    .setTimeFormat(TimeFormat.CLOCK_24H)
+                    .setHour(calendar.get(Calendar.HOUR_OF_DAY))
+                    .setMinute(calendar.get(Calendar.MINUTE))
+                    .setTitleText("选择时间")
+                    .build();
+
+            timePicker.addOnPositiveButtonClickListener(v -> {
+                calendar.set(Calendar.HOUR_OF_DAY, timePicker.getHour());
+                calendar.set(Calendar.MINUTE, timePicker.getMinute());
+                calendar.set(Calendar.SECOND, 0);
+                calendar.set(Calendar.MILLISECOND, 0);
+                
+                timestampHolder[0] = calendar.getTimeInMillis();
+                
+                // Update button text
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault());
+                button.setText(sdf.format(new java.util.Date(timestampHolder[0])));
+            });
+
+            timePicker.show(getSupportFragmentManager(), "time_picker");
+        });
+
+        datePicker.show(getSupportFragmentManager(), "date_picker");
     }
 }
