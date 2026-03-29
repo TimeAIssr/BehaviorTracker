@@ -20,6 +20,11 @@ captures/
 .externalNativeBuild/
 .cxx/
 
+# Eclipse
+.project
+.classpath
+.settings/
+
 # Keystore
 *.jks
 *.keystore
