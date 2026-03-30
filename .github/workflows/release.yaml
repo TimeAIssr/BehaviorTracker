@@ -49,21 +49,11 @@ jobs:
       - name: Build debug APK
         run: ./gradlew --no-daemon assembleDebug
 
-      - name: Rename APK files
+      - name: Rename APK
         run: |
           VERSION=${{ steps.version.outputs.version }}
-          cd app/build/outputs/apk/debug
-          for apk in *-debug.apk; do
-            ARCH=$(echo $apk | sed 's/app-\(.*\)-debug.apk/\1/')
-            if [ "$ARCH" = "universal" ]; then
-              NEW_NAME="BehaviorTracker-v${VERSION}-universal.apk"
-            else
-              NEW_NAME="BehaviorTracker-v${VERSION}-${ARCH}.apk"
-            fi
-            mv "$apk" "$NEW_NAME"
-            echo "Renamed $apk to $NEW_NAME"
-          done
-          ls -la
+          mv app/build/outputs/apk/debug/app-debug.apk \
+             app/build/outputs/apk/debug/BehaviorTracker-v${VERSION}.apk
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
