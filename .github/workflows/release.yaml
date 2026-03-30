@@ -49,6 +49,22 @@ jobs:
       - name: Build debug APK
         run: ./gradlew --no-daemon assembleDebug
 
+      - name: Rename APK files
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          cd app/build/outputs/apk/debug
+          for apk in *-debug.apk; do
+            ARCH=$(echo $apk | sed 's/app-\(.*\)-debug.apk/\1/')
+            if [ "$ARCH" = "universal" ]; then
+              NEW_NAME="BehaviorTracker-v${VERSION}-universal.apk"
+            else
+              NEW_NAME="BehaviorTracker-v${VERSION}-${ARCH}.apk"
+            fi
+            mv "$apk" "$NEW_NAME"
+            echo "Renamed $apk to $NEW_NAME"
+          done
+          ls -la
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -62,11 +78,6 @@ jobs:
             
             ### Installation
             Download the APK file below and install on your Android device.
-          files: |
-            app/build/outputs/apk/debug/*-armeabi-v7a-debug.apk#BehaviorTracker-v${{ steps.version.outputs.version }}-armeabi-v7a.apk
-            app/build/outputs/apk/debug/*-arm64-v8a-debug.apk#BehaviorTracker-v${{ steps.version.outputs.version }}-arm64-v8a.apk
-            app/build/outputs/apk/debug/*-x86-debug.apk#BehaviorTracker-v${{ steps.version.outputs.version }}-x86.apk
-            app/build/outputs/apk/debug/*-x86_64-debug.apk#BehaviorTracker-v${{ steps.version.outputs.version }}-x86_64.apk
-            app/build/outputs/apk/debug/*-universal-debug.apk#BehaviorTracker-v${{ steps.version.outputs.version }}-universal.apk
+          files: app/build/outputs/apk/debug/*.apk
           draft: false
           prerelease: false
