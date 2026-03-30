@@ -62,6 +62,11 @@ jobs:
             
             ### Installation
             Download the APK file below and install on your Android device.
-          files: app/build/outputs/apk/debug/app-debug.apk#BehaviorTracker-v${{ steps.version.outputs.version }}.apk
+          files: |
+            app/build/outputs/apk/debug/*-armeabi-v7a-debug.apk#BehaviorTracker-v${{ steps.version.outputs.version }}-armeabi-v7a.apk
+            app/build/outputs/apk/debug/*-arm64-v8a-debug.apk#BehaviorTracker-v${{ steps.version.outputs.version }}-arm64-v8a.apk
+            app/build/outputs/apk/debug/*-x86-debug.apk#BehaviorTracker-v${{ steps.version.outputs.version }}-x86.apk
+            app/build/outputs/apk/debug/*-x86_64-debug.apk#BehaviorTracker-v${{ steps.version.outputs.version }}-x86_64.apk
+            app/build/outputs/apk/debug/*-universal-debug.apk#BehaviorTracker-v${{ steps.version.outputs.version }}-universal.apk
           draft: false
           prerelease: false
