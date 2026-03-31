@@ -34,7 +34,7 @@ jobs:
 
       - name: Decode keystore
         run: |
-          printf '%s' "$KEYSTORE_BASE64" | base64 -d > app/behaviortracker.jks
+          python3 -c "import base64, os; open('app/behaviortracker.jks','wb').write(base64.b64decode(os.environ['KEYSTORE_BASE64']))"
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
 
