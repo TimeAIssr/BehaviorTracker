@@ -2,6 +2,12 @@ plugins {
     id 'com.android.application'
 }
 
+def secretsFile = rootProject.file('secrets.properties')
+def secrets = new Properties()
+if (secretsFile.exists()) {
+    secrets.load(new FileInputStream(secretsFile))
+}
+
 android {
     namespace = 'com.github.timeaissr.behaviortracker'
     compileSdk = 36
@@ -10,16 +16,30 @@ android {
         applicationId = "com.github.timeaissr.behaviortracker"
         minSdk = 33
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.0.1"
+        versionCode = 3
+        versionName = "1.0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        release {
+            if (secretsFile.exists()) {
+                storeFile rootProject.file(secrets['storeFile'])
+                storePassword secrets['storePassword']
+                keyAlias secrets['keyAlias']
+                keyPassword secrets['keyPassword']
+            }
+        }
     }
 
     buildTypes {
         release {
             minifyEnabled = true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (secretsFile.exists()) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 
