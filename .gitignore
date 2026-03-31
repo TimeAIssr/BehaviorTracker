@@ -1,16 +1,22 @@
+# ============================================
+# Generated Files & Build Outputs
+# ============================================
+*.class
+*.log
+*.txt
+*.xml.bak
+
+# ============================================
 # Gradle
+# ============================================
 .gradle/
 build/
 !gradle/wrapper/gradle-wrapper.jar
+**/gradle/wrapper/*.properties
 
-# Android
-*.apk
-*.aar
-*.ap_
-*.aab
-output.json
-
-# IntelliJ / Android Studio
+# ============================================
+# Android Studio / IntelliJ
+# ============================================
 .idea/
 *.iml
 *.iws
@@ -19,26 +25,80 @@ output.json
 captures/
 .externalNativeBuild/
 .cxx/
+local.properties
 
-# Eclipse
+# ============================================
+# Eclipse (Legacy)
+# ============================================
 .project
 .classpath
 .settings/
 
-# Keystore
-*.jks
-*.keystore
+# ============================================
+# Android Build Artifacts
+# ============================================
+*.apk
+*.aab
+*.ap_
+*.aar
+output.json
+*.dex
+*.class
+bin/
+gen/
+out/
+release/
 
-# Local config
-local.properties
-*.log
-google-services.json
+# ============================================
+# NDK
+# ============================================
+obj/
+*.so
 
+# ============================================
+# ProGuard / R8
+# ============================================
+proguard/
+mapping.txt
+
+# ============================================
 # Lint
+# ============================================
+lint-results.xml
 lint/generated/
 lint/outputs/
 
-# OS
+# ============================================
+# Keystores & Secrets
+# ============================================
+*.jks
+*.keystore
+*.p12
+*.bks
+.jks
+.env
+.env.*
+google-services.json
+secrets.properties
+
+# ============================================
+# OS Files
+# ============================================
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+Thumbs.db:encryptable
 desktop.ini
+
+# ============================================
+# AI Agent Files
+# ============================================
+AGENTS.md
+.cursor/
+.cursorrules
+.claude/
+.claude.md
