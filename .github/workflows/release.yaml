@@ -32,6 +32,21 @@ jobs:
           echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "Extracted version: $VERSION from tag: $TAG_NAME"
 
+      - name: Decode keystore
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > app/behaviortracker.jks
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+
+      - name: Create signing config
+        run: |
+          cat > secrets.properties <<EOF
+          storeFile=app/behaviortracker.jks
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          EOF
+
       - name: Update version in build.gradle
         run: |
           VERSION=${{ steps.version.outputs.version }}
@@ -46,14 +61,14 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew
 
-      - name: Build debug APK
-        run: ./gradlew --no-daemon assembleDebug
+      - name: Build release APK
+        run: ./gradlew --no-daemon assembleRelease
 
       - name: Rename APK
         run: |
           VERSION=${{ steps.version.outputs.version }}
-          mv app/build/outputs/apk/debug/app-debug.apk \
-             app/build/outputs/apk/debug/BehaviorTracker-v${VERSION}.apk
+          mv app/build/outputs/apk/release/app-release.apk \
+             app/build/outputs/apk/release/BehaviorTracker-v${VERSION}.apk
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -68,6 +83,6 @@ jobs:
             
             ### Installation
             Download the APK file below and install on your Android device.
-          files: app/build/outputs/apk/debug/*.apk
+          files: app/build/outputs/apk/release/*.apk
           draft: false
           prerelease: false
